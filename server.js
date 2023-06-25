@@ -11,6 +11,15 @@ app.use(express.json());
 app.use(cors())
 app.use(express.static('public'))
 
+const Rollbar = require('rollbar')
+const rollbar = new Rollbar({
+  accessToken: 'd7debd95edae4d3d822bbf4256ddb4f7',
+  captureUncaught: true,
+  captureUnhandledRejections: true,
+})
+
+rollbar.log('Hello world!')
+
 const playerRecord = {
   wins: 0,
   losses: 0,
@@ -46,6 +55,7 @@ app.get("/api/robots", (req, res) => {
   try {
     res.status(200).send(botsArr);
   } catch (error) {
+    rollbar.error('error getting bots')
     console.error("ERROR GETTING BOTS", error);
     res.sendStatus(400);
   }
@@ -73,12 +83,15 @@ app.post("/api/duel", (req, res) => {
     // comparing the total health to determine a winner
     if (compHealth > playerHealth) {
       playerRecord.losses += 1;
+      rollbar.log('computer won lol')
       res.status(200).send("You lost!");
     } else {
       playerRecord.losses += 1;
+      rollbar.log('player won yay!')
       res.status(200).send("You won!");
     }
   } catch (error) {
+    rollbar.critical('error dueling')
     console.log("ERROR DUELING", error);
     res.sendStatus(400);
   }
